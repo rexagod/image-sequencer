@@ -8,6 +8,7 @@ env:
   - CXX=g++-4.8
 before_script:
   - npm install grunt-cli -g # for "grunt build"
+  - grunt build
 script:
   - npm test
   - grunt build
