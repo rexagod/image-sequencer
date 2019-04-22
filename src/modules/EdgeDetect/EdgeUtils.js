@@ -37,8 +37,9 @@ module.exports = function(pixels, highThresholdRatio, lowThresholdRatio, useHyst
   strongEdgePixels.forEach(pixel => preserve(pixels, pixel));
   weakEdgePixels.forEach(pixel => supress(pixels, pixel));
   pixelsToBeSupressed.forEach(pixel => supress(pixels, pixel));
+  console.log('done')
 
-return pixels;
+  return pixels;
 }
 
 
