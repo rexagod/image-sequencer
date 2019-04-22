@@ -1,6 +1,7 @@
 module.exports = exports = function(pixels, blur) {
-  let kernel = kernelGenerator(blur), oldpix = require('lodash').cloneDeep(pixels);
+  let kernel = kernelGenerator(blur);
 
+  // let oldpix = require('lodash').cloneDeep(pixels);
   // for (let i = 0; i < pixels.shape[0]; i++) {
   //   for (let j = 0; j < pixels.shape[1]; j++) {
   //     let neighboutPos = getNeighbouringPixelPositions([i, j]);
