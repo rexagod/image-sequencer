@@ -15,32 +15,26 @@ const gpuUtils = require('../_nomodule/gpuUtils')
 let pixelsToBeSupressed = [];
 
 module.exports = function(pixels, highThresholdRatio, lowThresholdRatio, hysteresis) {
-  // for (var x = 0; x < pixels.shape[0]; x++) {
-  //   grads.push([]);
-  //   angles.push([]);
-  //   for (var y = 0; y < pixels.shape[1]; y++) {
-  //     var result = sobelFilter(
-  //       pixels,
-  //       x,
-  //       y
-  //     );
-  //     let pixel = result.pixel;
+  let angles = [];
+  
+  let oldConv = (-1) * performance.now()
+  const { gradsX, gradsY } = sobelFilter(pixels)
+  oldConv += performance.now()
+  console.log(`old convolution took ${oldConv}ms`)
 
-  //     grads.slice(-1)[0].push(pixel[3]);
-  //     angles.slice(-1)[0].push(result.angle);
-  //   }
-  // }
+  window.gx = gradsX;
+  window.gy = gradsY;
 
   let vals = []
 
-  for (var y = 0; y < pixels.shape[0]; y++){
+  for (var y = 0; y < pixels.shape[1]; y++){
     vals.push([])
-    for (var x = 0; x < pixels.shape[1]; x++){
+    for (var x = 0; x < pixels.shape[0]; x++){
       vals[y].push(pixels.get(x, y, 0))
     }
   }
 
-  grads = gpuUtils.convolve(vals, [kernelx, kernely], true)
+  window.grads = gpuUtils.convolve(vals, [kernelx, kernely])
 
   // nonMaxSupress(pixels, grads, angles);
   // doubleThreshold(pixels, highThresholdRatio, lowThresholdRatio, grads, strongEdgePixels, weakEdgePixels);
@@ -69,34 +63,57 @@ function preserve(pixels, pixel) {
 }
 
 // sobelFilter function that convolves sobel kernel over every pixel
-function sobelFilter(pixels, x, y) {
-  let val = pixels.get(x, y, 0),
-    gradX = 0.0,
-    gradY = 0.0;
+function sobelFilter(pixels) {
+  // Padding Function
+  const padIt = (pixels) => {
+    let out = []
 
-  for (let a = 0; a < 3; a++) {
-    for (let b = 0; b < 3; b++) {
+    for (var y = 0; y < pixels.shape[1] + 2; y++){
+      out.push([])
+      for (var x = 0; x < pixels.shape[0] + 2; x++){
+        const positionX = Math.min(Math.max(x - 1, 0), pixels.shape[0] - 1);
+        const positionY = Math.min(Math.max(y - 1, 0), pixels.shape[1] - 1);
 
-      let xn = x + a - 1,
-        yn = y + b - 1;
-
-      if (isOutOfBounds(pixels, xn, yn)) {
-        gradX += pixels.get(xn+1, yn+1, 0) * kernelx[a][b];
-        gradY += pixels.get(xn+1, yn+1, 0) * kernely[a][b];
+        out[y].push(pixels.get(positionX, positionY, 0))
       }
-      else {
-        gradX += pixels.get(xn, yn, 0) * kernelx[a][b];
-        gradY += pixels.get(xn, yn, 0) * kernely[a][b];
+    }
+
+    return out
+  }
+
+  let vals = padIt(pixels)
+
+  let gradsX = [],
+    gradsY = [];
+
+  for (let y = 0; y < pixels.shape[1]; y++){
+    gradsX.push([])
+    gradsY.push([])
+    for (let x = 0; x < pixels.shape[0]; x++){
+      let sumX = 0;
+      let sumY = 0;
+      for (let i = 0; i < 3; i++){
+        for (let j = 0; j < 3; j++){
+          sumX += vals[y + j][x + i] * kernelx[j][i];
+          sumY += vals[y + j][x + i] * kernely[j][i];
+        }
       }
+      gradsX[y].push(sumX);
+      gradsY[y].push(sumY);
     }
   }
 
-  const grad = Math.sqrt(Math.pow(gradX, 2) + Math.pow(gradY, 2)),
-    angle = Math.atan2(gradY, gradX);
+  // const grad = Math.sqrt(Math.pow(gradX, 2) + Math.pow(gradY, 2)),
+  //   angle = Math.atan2(gradY, gradX);
+  // return {
+  //   pixel: [val, val, val, grad],
+  //   angle: angle
+  // };
+
   return {
-    pixel: [val, val, val, grad],
-    angle: angle
-  };
+    gradsX,
+    gradsY
+  }
 }
 
 function categorizeAngle(angle){
