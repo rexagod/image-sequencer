@@ -3,25 +3,25 @@ const gpu = new GPU({mode: 'gpu'})
 
 /**
  * @method convolve
- * @param {Float32Array|Unit8Array|Float64Array} array Original matrix.
- * @param {Float32Array|Unit8Array|Float64Array} kernels An array of kernels each of same size to be convolved on the same matrix.
+ * @param {Float32Array|Unit8Array|Float64Array} arrays Array of matrices all of the same size.
+ * @param {Float32Array|Unit8Array|Float64Array} kernel kernelto be convolved on all the matrices.
  * @param {Boolean} pipeMode Whether to save the output to a texture.
  * @param {Boolean} normalize Whether to normailize the output by dividing it by the total value of the kernel.
  * @returns {Float32Array} 
  */
-const convolve = (array, kernels, pipeMode = false, normalize = false) => {
-  const arrayX = array[0].length,
-    arrayY = array.length,
-    kernelX = kernels[0][0].length,
-    kernelY = kernels[0].length,
+const convolve = (arrays, kernel, pipeMode = false, normalize = false) => {
+  const arrayX = arrays[0][0].length,
+    arrayY = arrays[0].length,
+    kernelX = kernel[0].length,
+    kernelY = kernel.length,
     paddingX = Math.floor(kernelX / 2),
     paddingY = Math.floor(kernelY / 2);
 
-  const matConvFunc = `function (array, kernels) {
+  const matConvFunc = `function (array, kernel) {
     var sum = 0;
     for (var i = 0; i < ${kernelX}; i++){
       for (var j = 0; j < ${kernelY}; j++){
-        sum += kernels[this.thread.z][j][i] * array[this.thread.y + j][this.thread.x + i];
+        sum += kernel[j][i] * array[this.thread.y + j][this.thread.x + i];
       }
     }
     return sum;
@@ -44,30 +44,21 @@ const convolve = (array, kernels, pipeMode = false, normalize = false) => {
   }
 
   const convolveKernel = gpu.createKernel(matConvFunc, {
-    output: [arrayX, arrayY, kernels.length],
+    output: [arrayX, arrayY],
     pipeline: pipeMode
   })
-
-  let buildPer = window.performance.now() * (-1)
-  let padTime = performance.now() * (-1)
-  const paddedArray = padIt(array)
-  padTime += performance.now()
-  console.log(`padding took ${padTime}ms`)
-  convolveKernel.build(paddedArray, kernels[0])
-  buildPer += performance.now();
-  console.log(`compilation took ${buildPer - padTime}ms`)
   
-  let outs;
+  let outs = [];
+  for (var i = 0; i < arrays.length; i++){
+    const paddedArray = padIt(arrays[i])
 
-  let perform = (-1) * window.performance.now()
-  if (pipeMode) out = convolveKernel(paddedArray, kernels).toArray()
-  else out = convolveKernel(paddedArray, kernels)
-  perform += window.performance.now()
-  console.log(`new convolution took ${perform}ms`)
-  console.log(`total new convolution took ${buildPer + perform}ms
-  `)
+    const outArr = convolveKernel(paddedArray, kernel)
 
-  return out
+    if (pipeMode) outs.push(outArr.toArray())
+    else outs.push(outArr)
+  }
+
+  return outs
 }
 
 /**
