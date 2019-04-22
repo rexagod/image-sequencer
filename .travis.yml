@@ -7,8 +7,6 @@ node_js:
 env:
   - CXX=g++-4.8
 before_script:
-  - sudo apt-get update
-  - sudo apt-get install xserver-xorg-dev libxext-dev libxi-dev
   - npm install grunt-cli -g # for "grunt build"
   - npm install jasmine -g
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
@@ -29,6 +27,9 @@ addons:
     packages:
       - g++-4.8
       - xvfb # for tape-run
+      - xserver-xorg-dev
+      - libxext-dev
+      - libxi-dev
 install:
   - export DISPLAY=':99.0' # for tape-run
   - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & # for tape-run
