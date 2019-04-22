@@ -80,7 +80,7 @@ module.exports = exports = function(pixels, blur) {
     let kernel = [],
       sum = 0;
 
-    if (sigma == 0) sigma += 0.25
+    if (sigma == 0) sigma += 0.05
 
     const s = 2 * Math.pow(sigma, 2);
 
