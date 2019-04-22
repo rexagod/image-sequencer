@@ -20,7 +20,8 @@ module.exports = function(pixels, highThresholdRatio, lowThresholdRatio, hystere
   let oldConv = (-1) * performance.now()
   const { gradsX, gradsY } = sobelFilter(pixels)
   oldConv += performance.now()
-  console.log(`old convolution took ${oldConv}ms`)
+  console.log(`old convolution took ${oldConv}ms
+  `)
 
   window.gx = gradsX;
   window.gy = gradsY;
