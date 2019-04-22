@@ -26,7 +26,7 @@ module.exports = function edgeDetect(options, UI) {
     }
 
     function extraManipulation(pixels) {
-      // pixels = require('ndarray-gaussian-filter')(pixels, options.blur);
+      pixels = require('ndarray-gaussian-filter')(pixels, options.blur);
       pixels = require('./EdgeUtils')(pixels, options.highThresholdRatio, options.lowThresholdRatio, options.hysteresis);
       return pixels;
     }
