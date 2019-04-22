@@ -10,32 +10,45 @@ kernely = [
   [ 1, 2, 1]
 ];
 
+const gpuUtils = require('../_nomodule/gpuUtils')
+
 let pixelsToBeSupressed = [];
 
 module.exports = function(pixels, highThresholdRatio, lowThresholdRatio, hysteresis) {
-  let angles = [], grads = [], strongEdgePixels = [], weakEdgePixels = [];
-  for (var x = 0; x < pixels.shape[0]; x++) {
-    grads.push([]);
-    angles.push([]);
-    for (var y = 0; y < pixels.shape[1]; y++) {
-      var result = sobelFilter(
-        pixels,
-        x,
-        y
-      );
-      let pixel = result.pixel;
+  // for (var x = 0; x < pixels.shape[0]; x++) {
+  //   grads.push([]);
+  //   angles.push([]);
+  //   for (var y = 0; y < pixels.shape[1]; y++) {
+  //     var result = sobelFilter(
+  //       pixels,
+  //       x,
+  //       y
+  //     );
+  //     let pixel = result.pixel;
 
-      grads.slice(-1)[0].push(pixel[3]);
-      angles.slice(-1)[0].push(result.angle);
+  //     grads.slice(-1)[0].push(pixel[3]);
+  //     angles.slice(-1)[0].push(result.angle);
+  //   }
+  // }
+
+  let vals = []
+
+  for (var y = 0; y < pixels.shape[0]; y++){
+    vals.push([])
+    for (var x = 0; x < pixels.shape[1]; x++){
+      vals[y].push(pixels.get(x, y, 0))
     }
   }
-  nonMaxSupress(pixels, grads, angles);
-  doubleThreshold(pixels, highThresholdRatio, lowThresholdRatio, grads, strongEdgePixels, weakEdgePixels);
-  if(hysteresis.toLowerCase() == 'true') hysteresis(strongEdgePixels, weakEdgePixels);
 
-  strongEdgePixels.forEach(pixel => preserve(pixels, pixel));
-  weakEdgePixels.forEach(pixel => supress(pixels, pixel));
-  pixelsToBeSupressed.forEach(pixel => supress(pixels, pixel));
+  grads = gpuUtils.convolve(vals, [kernelx, kernely], true)
+
+  // nonMaxSupress(pixels, grads, angles);
+  // doubleThreshold(pixels, highThresholdRatio, lowThresholdRatio, grads, strongEdgePixels, weakEdgePixels);
+  // if(hysteresis.toLowerCase() == 'true') hysteresis(strongEdgePixels, weakEdgePixels);
+
+  // strongEdgePixels.forEach(pixel => preserve(pixels, pixel));
+  // weakEdgePixels.forEach(pixel => supress(pixels, pixel));
+  // pixelsToBeSupressed.forEach(pixel => supress(pixels, pixel));
 
   return pixels;
 }

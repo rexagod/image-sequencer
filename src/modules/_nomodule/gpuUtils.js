@@ -1,19 +1,19 @@
 const GPU = require('gpu.js').GPU
-
 const gpu = new GPU({mode: 'gpu'})
 
 /**
- * 
- * @param {Float32Array|Unit8Array|Float64Array} array Original matrix
- * @param {Float32Array|Unit8Array|Float64Array} kernel Kernel.
- * @param {Boolean} texMode Whether to save the output to a texture.
+ * @method convolve
+ * @param {Float32Array|Unit8Array|Float64Array} array Original matrix.
+ * @param {Float32Array|Unit8Array|Float64Array} kernels An array of kernels each of same size to be convolved on the same matrix.
+ * @param {Boolean} pipeMode Whether to save the output to a texture.
+ * @param {Boolean} normalize Whether to normailize the output by dividing it by the total value of the kernel.
  * @returns {Float32Array} 
  */
-const convolve = (array, kernel, texMode = false, normalize = false) => {
+const convolve = (array, kernels, pipeMode = false, normalize = false) => {
   const arrayX = array[0].length,
     arrayY = array.length,
-    kernelX = kernel[0].length,
-    kernelY = kernel.length,
+    kernelX = kernels[0][0].length,
+    kernelY = kernels[0].length,
     paddingX = kernelX - 2,
     paddingY = kernelY - 2;
 
@@ -36,20 +36,59 @@ const convolve = (array, kernel, texMode = false, normalize = false) => {
 
   const padIt = gpu.createKernel(paddingFunc, {
     output: [arrayX + paddingX, arrayY + paddingY],
-    outputToTexture: true
+    pipeline: true
   })
 
   const convolveKernel = gpu.createKernel(matConvFunc, {
     output: [arrayX, arrayY],
-    outputToTexture: texMode
+    pipeline: pipeMode
   })
 
+  let buildPer = window.performance.now() * (-1)
   padIt.build(array);
+  let padTime = performance.now() * (-1)
+  const paddedArray = padIt(array).toArray()
+  padTime += performance.now()
+  console.log(`padding took ${padTime}ms`)
+  convolveKernel.build(paddedArray, kernels[0])
+  buildPer += performance.now();
+  console.log(`build took ${buildPer - padTime}ms`)
+  
+  let outs = []
 
-  const paddedArray = padIt(array)
+  for (var i = 0; i <  kernels.length; i++){
+    let perform = (-1) * window.performance.now()
+    if (pipeMode) outs.push(convolveKernel(paddedArray, kernels[i]).toArray())
+    else outs.push(convolveKernel(paddedArray, kernels[i]))
+    perform += window.performance.now()
+    console.log(`convolution ${i} took ${perform}ms`)
+  }
+}
 
-  convolveKernel.build(paddedArray, kernel)
+/**
+ * 
+ * @param {Float32Array|'Object'} outputSize Output size of the compute function.
+ * @param {Function} computeFunc The compute function. Cannot be an arrow function.
+ * @param {'Object'} constants Constants to be passed to the function. Can be accessed inside the compute function using `this.constants`.
+ * @param {Boolean} pipeMode Whether to save output array to a texture.
+ * @returns {Float32Array}
+ */
+const compute = (outputSize, computeFunc, constants, pipeMode) => {
+  computeFunc = computeFunc.toString()
 
-  if (texMode) return convolveKernel(paddedArray, kernel).toArray()
-  else return convolveKernel(paddedArray, kernel)
+  const compute = gpu.createKernel(computeFunc, {
+    output: outputSize,
+    constants,
+    pipeline: pipeMode
+  })
+
+  compute.build()
+
+  if (pipeMode) return compute().toArray()
+  else return compute()
+}
+
+module.exports = {
+  convolve,
+  compute
 }
