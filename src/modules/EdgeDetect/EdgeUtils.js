@@ -35,7 +35,7 @@ module.exports = function(pixels, highThresholdRatio, lowThresholdRatio, hystere
     }
   }
 
-  window.grads = gpuUtils.convolve(vals, [kernelx, kernely])
+  window.grads = gpuUtils.convolve(vals, [kernelx, kernely], true)
 
   // nonMaxSupress(pixels, grads, angles);
   // doubleThreshold(pixels, highThresholdRatio, lowThresholdRatio, grads, strongEdgePixels, weakEdgePixels);
