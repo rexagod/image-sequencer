@@ -64,7 +64,8 @@ const convolve = (array, kernels, pipeMode = false, normalize = false) => {
   else out = convolveKernel(paddedArray, kernels)
   perform += window.performance.now()
   console.log(`new convolution took ${perform}ms`)
-  console.log(`total new convolution took ${buildPer + perform}ms`)
+  console.log(`total new convolution took ${buildPer + perform}ms
+  `)
 
   return out
 }
