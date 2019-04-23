@@ -1,5 +1,5 @@
 const GPU = require('gpu.js').GPU
-const gpu = new GPU({mode: 'gpu'})
+const gpu = new GPU()
 
 /**
  * @method convolve
