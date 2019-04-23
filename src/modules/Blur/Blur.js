@@ -20,7 +20,7 @@ module.exports = exports = function(pixels, blur) {
   //   }
   // }
 
-  pixs = {
+  let pixs = {
     r: [],
     g: [],
     b: [],
@@ -40,13 +40,13 @@ module.exports = exports = function(pixels, blur) {
 
   const convolve = require('../_nomodule/gpuUtils').convolve
 
-  conPix = convolve([pixs.r, pixs.g, pixs.b], kernel)
+  const conPix = convolve([pixs.r, pixs.g, pixs.b], kernel)
 
   for (let y = 0; y < pixels.shape[1]; y++){
     for (let x = 0; x < pixels.shape[0]; x++){
-      pixels.set(x, y, 0, conPix[0][y][x])
-      pixels.set(x, y, 1, conPix[1][y][x])
-      pixels.set(x, y, 2, conPix[2][y][x])
+      pixels.set(x, y, 0, Math.max(0, Math.min(conPix[0][y][x], 255)))
+      pixels.set(x, y, 1, Math.max(0, Math.min(conPix[1][y][x], 255)))
+      pixels.set(x, y, 2, Math.max(0, Math.min(conPix[2][y][x], 255)))
     }
   }
 

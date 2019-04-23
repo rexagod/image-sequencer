@@ -8,7 +8,6 @@
   			"default": 0.1111,
         "placeholder": 0.1111
   		},
-        
       "kernelValues": {
         "type": "string",
         "desc": "nine space separated numbers representing the kernel values in left to right and top to bottom format.",
