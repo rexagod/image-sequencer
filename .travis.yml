@@ -27,9 +27,9 @@ addons:
     packages:
       - g++-4.8
       - xvfb # for tape-run
-      - xserver-xorg-dev
-      - libxext-dev
-      - libxi-dev
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install xserver-xorg-dev libxext-dev libxi-dev
 install:
   - export DISPLAY=':99.0' # for tape-run
   - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & # for tape-run
