@@ -1,6 +1,6 @@
 {
-    "name": "matcher-core",
-    "description": "Pattern-mining module for detecting key-points in images",
+    "name": "matcher",
+    "description": "Pattern-mining module for detecting key-points in images.",
     "url": "https://github.com/publiclab/matcher-core.git",
     "inputs": {
         "imageX": {
