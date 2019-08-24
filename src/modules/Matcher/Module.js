@@ -5,23 +5,23 @@ function Match(options, UI) {
   var output;
 
   var step = this;
-  var points = this.r.points;
+  var points = window.r.points;
 
   function draw(input, callback, progressObj) {
     progressObj.stop(true);
     progressObj.overrideFlag = true;
 
     function changePixel(r, g, b, a, x, y) {
-        for (var i = 0; i < points.length; i++) {
-          if (
-            Math.abs(points[i].x - x) <= 4 &&
+      for (var i = 0; i < points.length; i++) {
+        if (
+          Math.abs(points[i].x - x) <= 4 &&
             Math.abs(points[i].y - y) <= 4
-          ) {
-            return [0, 255, 0, a];
-          }
+        ) {
+          return [0, 255, 0, a];
         }
-        return [r,g,b,a];
       }
+      return [r, g, b, a];
+    }
 
     function output(image, datauri, mimetype) {
       step.output = { src: datauri, format: mimetype };
