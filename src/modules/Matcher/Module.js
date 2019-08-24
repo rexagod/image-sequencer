@@ -1,4 +1,3 @@
-require('./points');
 /*
  * Match the images
  */
@@ -6,11 +5,7 @@ function Match(options, UI) {
   var output;
 
   var step = this;
-  Promise.resolve(this.r).then(function(r){
-    this.points = r.points;
-  });
-
-  var points = this.points;
+  var points = this.r.points;
 
   function draw(input, callback, progressObj) {
     progressObj.stop(true);
