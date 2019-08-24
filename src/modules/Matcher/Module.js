@@ -1,49 +1,32 @@
+require('./points');
 /*
  * Match the images
  */
 function Match(options, UI) {
   var output;
 
+  var step = this;
+  Promise.resolve(this.r).then(function(r){
+    this.points = r.points;
+  });
+
+  var points = this.points;
+
   function draw(input, callback, progressObj) {
     progressObj.stop(true);
     progressObj.overrideFlag = true;
 
-    var step = this;
-    async function asf() {
-      if(this.results){
-        return this.results;
-      }
-      new Matcher(
-        "examples/images/small.jpg",
-        "examples/images/big.jpg",
-        async function(q) {
-          var res = await q;
-          this.results = res.points;
-        }
-      );
-      return await this.results;
-    }
-
-    async function changePixel(r, g, b, a, x, y) {
-      debugger
-      asf().then(function(points){
-
-        for (var i = 0; i < 500; i++) {
+    function changePixel(r, g, b, a, x, y) {
+        for (var i = 0; i < points.length; i++) {
           if (
-            Math.abs(points[i].x - x) <= 10 &&
-            Math.abs(points[i].y - y) <= 10
+            Math.abs(points[i].x - x) <= 4 &&
+            Math.abs(points[i].y - y) <= 4
           ) {
-            return [0, 255, 0];
+            return [0, 255, 0, a];
           }
         }
-
-        var rgba = [r, g, b, a];
-        this.rgba = rgba;
-      });
-
-      return await this.rgba;
-
-    }
+        return [r,g,b,a];
+      }
 
     function output(image, datauri, mimetype) {
       step.output = { src: datauri, format: mimetype };
